@@ -1,0 +1,45 @@
+version: '3.8'  # Specify Docker Compose version (3.8 is widely supported as of 2025)
+
+services:
+  postgres:
+    image: postgres:17.4  # Official PostgreSQL image, latest version
+    container_name: postgres_db  # Name for the container
+    environment:
+      POSTGRES_USER: airc  # Database username
+      POSTGRES_PASSWORD: admin  # Database password
+      POSTGRES_DB: dataops  # Default database name
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist data outside the container
+    ports:
+      - "5432:5432"  # Expose PostgreSQL port to the host
+    networks:
+      - pg-network  # Shared network with pgAdmin
+    restart: unless-stopped  # Restart policy for reliability
+
+  pgadmin:
+    image: dpage/pgadmin4:9.0.0 # Official pgAdmin 4 image
+    container_name: pgadmin_ui  # Name for the container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: quan-airc@gmail.com  # pgAdmin login email
+      PGADMIN_DEFAULT_PASSWORD: admin  # pgAdmin login password
+      PGADMIN_CONFIG_SERVER_MODE: "False"  # Optional: Run in single-user mode
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"  # Optional: Simplify login
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin  # Persist pgAdmin config
+    ports:
+      - "8080:80"  # Expose pgAdmin web UI (port 80 inside container mapped to 8080 on host)
+    depends_on:
+      - postgres  # Ensure PostgreSQL starts first
+    networks:
+      - pg-network  # Shared network with PostgreSQL
+    restart: unless-stopped  # Restart policy for reliability
+
+# Define a shared network
+networks:
+  pg-network:
+    driver: bridge  # Default network type for service communication
+
+# Define persistent volumes
+volumes:
+  postgres_data:  # Volume for PostgreSQL data
+  pgadmin_data:   # Volume for pgAdmin configuration
